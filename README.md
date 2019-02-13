@@ -16,7 +16,7 @@ after you click on a line, the cross link is automatically checked and identifie
 一个自动检查corss link的工具。
 
 
-## inventorymapbot(../../raw/master/inventorymapbot.user.js)
+## [inventorymapbot](../../raw/master/inventorymapbot.user.js)
 a tool for exchanging data between bookmarks, key, and inventorymapbot.
 
 用于bookmarker、key插件与inventorymapbot之间交换数据。
