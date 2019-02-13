@@ -17,6 +17,6 @@ after you click on a line, the cross link is automatically checked and identifie
 
 
 ## inventorymapbot
-a tool for exchanging data between bookmarker, key, and inventorymapbot.
+a tool for exchanging data between bookmarks, key, and inventorymapbot.
 
 用于bookmarker、key插件与inventorymapbot之间交换数据。
