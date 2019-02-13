@@ -2,7 +2,7 @@
 // @id             iitc-plugin-cross-link-autodetect-tool@GMOogway
 // @name           IITC plugin: Cross Link AutoDetect Tool By GMOogway
 // @category       Layer
-// @version        0.1.1.20190211
+// @version        0.1.2.20190211
 // @author         GMOogway
 // @description    [local-2019-02-11]  Cross Link AutoDetect Tool.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/cross-link-autodetect-tool.user.js
