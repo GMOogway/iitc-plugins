@@ -2,7 +2,7 @@
 // @id             iitc-plugin-cross-link-autodetect-tool@GMOogway
 // @name           IITC plugin: Cross Link AutoDetect Tool By GMOogway
 // @category       Layer
-// @version        0.1.0.20190211
+// @version        0.1.1.20190211
 // @author         GMOogway
 // @description    [local-2019-02-11]  Cross Link AutoDetect Tool.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/cross-link-autodetect-tool.user.js
@@ -139,20 +139,20 @@ window.plugin.CLADT.optSetStatus = function(status) {
   switch(status) {
     case 'start':{
       window.plugin.CLADT.STATUS = 'start';
-      $('#cladt_status').text('stop');
+      $('#cladt_status').text('Stop');
       window.plugin.drawTools.drawnItems.on('click', window.plugin.CLADT.onLayerClick);
       window.plugin.CLADT.optAlert('Select a line to start.');
       break;
     }
     case 'stop':{
       window.plugin.CLADT.STATUS = 'stop';
-      $('#cladt_status').text('start');
+      $('#cladt_status').text('Start');
       window.plugin.drawTools.drawnItems.off('click', window.plugin.CLADT.onLayerClick);
       break;
     }
     case 'working':{
-      $('#cladt_status').text('working');
       window.plugin.CLADT.STATUS = 'working';
+      $('#cladt_status').text('Working');
       window.plugin.drawTools.drawnItems.off('click', window.plugin.CLADT.onLayerClick);
       //window.plugin.CLADT.optAlert('Don\'t click click clik when I\'m working.');
       break;
