@@ -29,7 +29,7 @@ plugin_info.pluginId = 'InventoryMapBot';
 // use own namespace for plugin
 window.plugin.InventoryMapBot = function() {};
 
-window.plugin.InventoryMapBot.IS_DEBUG = true;
+window.plugin.InventoryMapBot.IS_DEBUG = false;
 window.plugin.InventoryMapBot.DELAY = 500;
 window.plugin.InventoryMapBot.GAODEMAP_KEY = '2ce1125f3069586a30a1dae79b0774eb';
 window.plugin.InventoryMapBot.IDcount = 0;
@@ -207,7 +207,7 @@ window.plugin.InventoryMapBot.optExport = async function() {
         }catch(e){
           alert('get ' + label + ' fail!');
         }
-        window.plugin.InventoryMapBot.debug(dataobj);
+        //window.plugin.InventoryMapBot.debug(dataobj);
       }
     }
     dialog({
