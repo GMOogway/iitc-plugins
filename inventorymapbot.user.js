@@ -2,7 +2,7 @@
 // @id             iitc-plugin-InventoryMapBot@GMOogway
 // @name           IITC plugin: InventoryMapBot plugin by GMOogway
 // @category       Controls
-// @version        0.3.1.20190214
+// @version        0.3.2.20190214
 // @author         GMOogway
 // @description    [local-2019-02-14] InventoryMapBot plugin by GMOogway.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
@@ -288,22 +288,25 @@ window.plugin.InventoryMapBot.optImport = async function() {
         var portals = botdataobj['items'];
         for (var portalguid in portals) {
           var portal = portals[portalguid];
-          var guid = portal['guid'];
-          if (portal['amount'] != 0) {
-            keysobj[guid] = portal['amount'];
+          if (portal['latitude'] && portal['longitude']){
+            var guid = portal['guid'];
+            if (portal['amount'] != 0) {
+              keysobj[guid] = portal['amount'];
+            }
+            var ID = window.plugin.InventoryMapBot.generateID();
+            bookmarksobj['portals']['idOthers']['bkmrk'][ID] = {
+              "guid": portal['guid'],
+              "latlng": portal['latitude'] + ',' + portal['longitude'],
+              "label": portal['name']
+            };
           }
-          var ID = window.plugin.InventoryMapBot.generateID();
-          bookmarksobj['portals']['idOthers']['bkmrk'][ID] = {
-            "guid": portal['guid'],
-            "latlng": portal['latitude'] + ',' + portal['longitude'],
-            "label": portal['name']
-          };
         }
         localStorage['plugin-bookmarks'] = JSON.stringify(bookmarksobj);
         localStorage['plugin-bookmarks-updating-queue'] = JSON.stringify(bookmarksobj);
         localStorage['plugin-keys-data'] = JSON.stringify(keysobj);
         localStorage['plugin-keys-data-queue'] = JSON.stringify(keysobj);
         window.plugin.InventoryMapBot.optAlert('Successful. ');
+        window.location.reload();
       } catch(e) {
         console.warn('InventoryMapBot: failed to import data: ' + e);
         window.plugin.InventoryMapBot.optAlert('<span style="color: #f88">Import failed </span>');
