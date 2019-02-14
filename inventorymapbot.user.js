@@ -2,9 +2,9 @@
 // @id             iitc-plugin-InventoryMapBot@GMOogway
 // @name           IITC plugin: InventoryMapBot plugin by GMOogway
 // @category       Controls
-// @version        0.3.0.20190211
+// @version        0.3.1.20190214
 // @author         GMOogway
-// @description    [local-2019-02-11] InventoryMapBot plugin by GMOogway.
+// @description    [local-2019-02-14] InventoryMapBot plugin by GMOogway.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
 // @updateURL      https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
 // @namespace      https://github.com/GMOogway/iitc-plugins
@@ -21,7 +21,7 @@ if(typeof window.plugin !== 'function') window.plugin = function() {};
 //PLUGIN AUTHORS: writing a plugin outside of the IITC build environment? if so, delete these lines!!
 //(leaving them in place might break the 'About IITC' page or break update checks)
 plugin_info.buildName = 'local';
-plugin_info.dateTimeVersion = '20190211';
+plugin_info.dateTimeVersion = '20190214';
 plugin_info.pluginId = 'InventoryMapBot';
 //END PLUGIN AUTHORS NOTE
 
@@ -165,6 +165,7 @@ window.plugin.InventoryMapBot.Sleep = function(ms) {
     ms);
   });
 }
+/*
 window.plugin.InventoryMapBot.optExport = async function() {
   if (window.plugin.InventoryMapBot.optCheck()) {
     if (window.plugin.InventoryMapBot.STATUS == 'working') return;
@@ -208,6 +209,47 @@ window.plugin.InventoryMapBot.optExport = async function() {
           alert('get ' + label + ' fail!');
         }
         //window.plugin.InventoryMapBot.debug(dataobj);
+      }
+    }
+    dialog({
+      html: '<p><a onclick="$(\'.ui-dialog-InventoryMapBot-copy textarea\').select();">Select all</a> and press CTRL+C to copy it.</p><textarea readonly>' + JSON.stringify(dataobj) + '</textarea>',
+      dialogClass: 'ui-dialog-InventoryMapBot-copy',
+      id: 'plugin-InventoryMapBot-export',
+      title: 'InventoryMapBot Export'
+    });
+    window.plugin.InventoryMapBot.optSetStatus('stop');
+  }
+}
+*/
+window.plugin.InventoryMapBot.optExport = function() {
+  if (window.plugin.InventoryMapBot.optCheck()) {
+    if (window.plugin.InventoryMapBot.STATUS == 'working') return;
+    window.plugin.InventoryMapBot.optSetStatus('working');
+    var dataobj = {
+      agent: PLAYER.nickname,
+      guid: "1234567890.c",
+      update: "true",
+      items: {}
+    };
+    var portalsList = JSON.parse(localStorage['plugin-bookmarks']);
+    // For each folder
+    var list = portalsList.portals;
+    for (var idFolders in list) {
+      var folders = list[idFolders];
+      // For each bookmark
+      var fold = folders['bkmrk'];
+      for (var idBkmrk in fold) {
+        var bkmrk = fold[idBkmrk];
+        var label = bkmrk['label'];
+        var latlng = bkmrk['latlng'];
+        var guid = bkmrk['guid'];
+        var amount = window.plugin.InventoryMapBot.optGetKeyCount(guid);
+          dataobj['items'][guid] = {
+            "amount": amount,
+            "latitude": latlng.split(',')[0],
+            "longitude": latlng.split(',')[1],
+            "name": bkmrk['label'],
+          };
       }
     }
     dialog({
