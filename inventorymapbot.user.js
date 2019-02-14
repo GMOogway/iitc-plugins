@@ -302,6 +302,7 @@ window.plugin.InventoryMapBot.optImport = async function() {
           }
         }
         localStorage['plugin-bookmarks'] = JSON.stringify(bookmarksobj);
+	localStorage['plugin-bookmarks-queue'] = JSON.stringify(bookmarksobj);
         localStorage['plugin-bookmarks-updating-queue'] = JSON.stringify(bookmarksobj);
         localStorage['plugin-keys-data'] = JSON.stringify(keysobj);
         localStorage['plugin-keys-data-queue'] = JSON.stringify(keysobj);
