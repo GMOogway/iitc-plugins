@@ -1,8 +1,8 @@
 // ==UserScript==
 // @id             iitc-plugin-InventoryMapBot@GMOogway
-// @name           IITC plugin: InventoryMapBot plugin by GMOogway
+// @name           IITC plugin: InventoryMapBot plugin
 // @category       Controls
-// @version        0.3.6.20190214
+// @version        0.3.7.20190214
 // @author         GMOogway
 // @description    [local-2019-02-14] InventoryMapBot plugin by GMOogway, works with sync.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
@@ -579,7 +579,7 @@ window.plugin.InventoryMapBot.addNoKeysPortal = function(guid){
     "longitude": p['options']['data']['lngE6'] / 1E6,
     "name": p['options']['data']['title'],
     "image": p['options']['data']['image'],
-    "address": ""
+    "address": "Export form InventoryMapBot plugin"
   };
   window.plugin.InventoryMapBot.dataObj = data;
   window.plugin.InventoryMapBot.saveStorage();
