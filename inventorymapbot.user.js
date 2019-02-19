@@ -2,7 +2,7 @@
 // @id             iitc-plugin-InventoryMapBot@GMOogway
 // @name           IITC plugin: InventoryMapBot plugin
 // @category       Controls
-// @version        0.3.7.20190214
+// @version        0.3.8.20190214
 // @author         GMOogway
 // @description    [local-2019-02-14] InventoryMapBot plugin by GMOogway, works with sync.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
@@ -29,7 +29,7 @@ plugin_info.pluginId = 'InventoryMapBot';
 // use own namespace for plugin
 window.plugin.InventoryMapBot = function() {};
 
-window.plugin.InventoryMapBot.IS_DEBUG = false;
+window.plugin.InventoryMapBot.IS_DEBUG = true;
 window.plugin.InventoryMapBot.KEY_STORAGE = 'plugin-inventorymapbot-data';
 window.plugin.InventoryMapBot.STATUS = 'stop';
 window.plugin.InventoryMapBot.NOKEYSPORTALS = 'agent-no-keys-protals';
@@ -96,10 +96,10 @@ window.plugin.InventoryMapBot.loadStorage = function() {
 window.plugin.InventoryMapBot.resetStorage = function() {
   window.plugin.InventoryMapBot.dataObj = {};
   window.plugin.InventoryMapBot.dataObj[window.plugin.InventoryMapBot.NOKEYSPORTALS] = {'agent':window.plugin.InventoryMapBot.NOKEYSPORTALS, 'items':{}};
-  window.plugin.InventoryMapBot.saveStorage();
-  delete localStorage[window.plugin.InventoryMapBot.UPDATE_QUEUE.key];
-  delete localStorage[window.plugin.InventoryMapBot.UPDATING_QUEUE.key];
-  window.plugin.InventoryMapBot.syncNow();
+  window.plugin.InventoryMapBot.storeLocal(window.plugin.InventoryMapBot.KEY);
+  //window.plugin.InventoryMapBot.updateQueue = {};
+  //window.plugin.InventoryMapBot.updatingQueue = window.plugin.InventoryMapBot.dataObj;
+  window.plugin.InventoryMapBot.syncInventoryMapBot();
 }
 
 window.plugin.InventoryMapBot.createStorage = function() {
@@ -365,6 +365,44 @@ window.plugin.InventoryMapBot.optCleanItems = function(data){
   }
 }
 
+window.plugin.InventoryMapBot.resetKeys = function(){
+  window.plugin.keys.updateQueue = {};
+  try{
+    for (var guid in JSON.parse(localStorage[window.plugin.keys.KEY.key])){
+      window.plugin.keys.updateQueue[guid] = null;
+    }
+  }catch(e){
+
+  }
+  window.plugin.keys.keys = {};
+  window.plugin.keys.storeLocal(window.plugin.keys.KEY);
+  window.plugin.keys.storeLocal(window.plugin.keys.UPDATE_QUEUE);
+  window.plugin.keys.syncNow();
+}
+
+window.plugin.InventoryMapBot.resetBookmarks = function(){
+  delete localStorage[window.plugin.bookmarks.KEY_STORAGE];
+  window.plugin.bookmarks.createStorage();
+  window.plugin.bookmarks.loadStorage();
+  window.plugin.bookmarks.refreshBkmrks();
+  window.runHooks('pluginBkmrksEdit', {"target": "all", "action": "reset"});
+  /*
+  delete localStorage[window.plugin.bookmarks.KEY.key];
+  delete localStorage[window.plugin.bookmarks.UPDATE_QUEUE.key];
+  delete localStorage[window.plugin.bookmarks.UPDATING_QUEUE.key];
+  localStorage[window.plugin.bookmarks.KEY_STATUS_BOX] = '{"show":0,"page":0,"pos":{"x":100,"y":100}}';
+  window.plugin.bookmarks.createStorage();
+  window.plugin.bookmarks.loadStorage();
+  window.plugin.bookmarks.refreshBkmrks();
+  window.plugin.bookmarks.loadLocal(window.plugin.bookmarks.KEY);
+  window.plugin.bookmarks.updateQueue = {};
+  window.plugin.bookmarks.storeLocal(window.plugin.bookmarks.UPDATE_QUEUE);
+  window.plugin.bookmarks.loadStorage();
+  window.plugin.bookmarks.updatingQueue = null;//window.plugin.bookmarks.bkmrksObj;
+  window.plugin.bookmarks.storeLocal(window.plugin.bookmarks.UPDATING_QUEUE);
+  window.plugin.sync.updateMap('bookmarks', window.plugin.bookmarks.KEY.field, Object.keys(window.plugin.bookmarks.updatingQueue));*/
+}
+
 window.plugin.InventoryMapBot.optReset = function() {
   if (!window.plugin.InventoryMapBot.optCheckRequirePlugins()) {
     return;
@@ -374,35 +412,10 @@ window.plugin.InventoryMapBot.optReset = function() {
   if (result){
     result = confirm('Confirm again. This operation will erase all data. ARE YOU SURE?');
     if (result){
-      //bookmarks
-      /*
-      localStorage[window.plugin.bookmarks.KEY.key] = '{"maps":{"idOthers":{"label":"Others","state":1,"bkmrk":{}}},"portals":{"idOthers":{"label":"Others","state":1,"bkmrk":{}}}}';
-      localStorage[window.plugin.bookmarks.UPDATE_QUEUE.key] = '{}';
-      localStorage[window.plugin.bookmarks.UPDATING_QUEUE.key] = '{}';
-      localStorage[window.plugin.bookmarks.KEY_STATUS_BOX] = '{"show":0,"page":0,"pos":{"x":100,"y":100}}';
-      */
-      delete localStorage[window.plugin.bookmarks.KEY.key];
-      delete localStorage[window.plugin.bookmarks.UPDATE_QUEUE.key];
-      delete localStorage[window.plugin.bookmarks.UPDATING_QUEUE.key];
-      localStorage[window.plugin.bookmarks.KEY_STATUS_BOX] = '{"show":0,"page":0,"pos":{"x":100,"y":100}}';
-      window.plugin.bookmarks.createStorage();
-      window.plugin.bookmarks.loadStorage();
-      window.plugin.bookmarks.refreshBkmrks();
-      window.plugin.bookmarks.loadLocal(window.plugin.bookmarks.KEY);
-      window.plugin.bookmarks.updateQueue = window.plugin.bookmarks.bkmrksObj;
-      window.plugin.bookmarks.storeLocal(window.plugin.bookmarks.UPDATE_QUEUE);
-      window.plugin.bookmarks.syncNow();
-      //keys
-      localStorage[window.plugin.keys.KEY.key] = {};
-      window.plugin.keys.storeLocal(window.plugin.keys.KEY);
-      delete localStorage[window.plugin.keys.UPDATE_QUEUE.key];
-      delete localStorage[window.plugin.keys.UPDATING_QUEUE.key];
-      window.plugin.keys.syncNow();
-      //InventoryMapBot
+      window.plugin.InventoryMapBot.resetBookmarks();
+      window.plugin.InventoryMapBot.resetKeys();
       window.plugin.InventoryMapBot.resetStorage();
-
       window.plugin.InventoryMapBot.optAlert('Reset successful. ');
-      //window.location.reload();
     }
   }
 }
@@ -446,6 +459,7 @@ window.plugin.InventoryMapBot.optImportMultiple = function(data){
     if (result){
       for(var agent in data){
         var agentdata = window.plugin.InventoryMapBot.optCleanItems(data[agent]);
+        window.plugin.InventoryMapBot.debug(agentdata);
         if (agentdata !== undefined){
           data[agent] = {};
           data[agent]['agent'] = agent;
@@ -469,11 +483,11 @@ window.plugin.InventoryMapBot.optRefreshBkmksKeysData = function(){
   window.plugin.InventoryMapBot.loadStorage();
   var data = window.plugin.InventoryMapBot.dataObj;
   var agent, guid;
+
+  window.plugin.InventoryMapBot.resetBookmarks();
+  window.plugin.InventoryMapBot.resetKeys();
+
   //to bookmarks
-  localStorage[window.plugin.bookmarks.KEY.key] = '{"maps":{"idOthers":{"label":"Others","state":1,"bkmrk":{}}},"portals":{"idOthers":{"label":"Others","state":1,"bkmrk":{}}}}';
-  localStorage[window.plugin.bookmarks.UPDATE_QUEUE.key] = '{}';
-  localStorage[window.plugin.bookmarks.UPDATING_QUEUE.key] = '{}';
-  localStorage[window.plugin.bookmarks.KEY_STATUS_BOX] = '{"show":0,"page":0,"pos":{"x":100,"y":100}}';
   window.plugin.bookmarks.loadStorage();
   for(agent in data){
     for (guid in data[agent]['items']){
@@ -485,11 +499,20 @@ window.plugin.InventoryMapBot.optRefreshBkmksKeysData = function(){
     }
   }
   window.plugin.bookmarks.saveStorage();
-  window.plugin.bookmarks.syncBkmrks();
+  /*
+  window.plugin.bookmarks.loadStorage();
+  window.plugin.bookmarks.refreshBkmrks();
+  window.plugin.bookmarks.loadLocal(window.plugin.bookmarks.KEY);
+  */
+  window.plugin.bookmarks.refreshBkmrks();
+  window.runHooks('pluginBkmrksEdit', {"target": "all", "action": "import"});
+  //window.plugin.bookmarks.updateQueue = {};
+  //window.plugin.bookmarks.storeLocal(window.plugin.bookmarks.UPDATE_QUEUE);
+  //window.plugin.bookmarks.updatingQueue = window.plugin.bookmarks.bkmrksObj;
+  //window.plugin.bookmarks.storeLocal(window.plugin.bookmarks.UPDATING_QUEUE);
+  //window.plugin.sync.updateMap('bookmarks', window.plugin.bookmarks.KEY.field, Object.keys(window.plugin.bookmarks.updatingQueue));
+
   //to keys
-  localStorage[window.plugin.keys.KEY.key] = '{}';
-  localStorage[window.plugin.keys.UPDATE_QUEUE.key] = '{}';
-  localStorage[window.plugin.keys.UPDATING_QUEUE.key] = '{}';
   window.plugin.keys.loadKeys();
   for(agent in data){
     for (guid in data[agent]['items']){
@@ -497,7 +520,7 @@ window.plugin.InventoryMapBot.optRefreshBkmksKeysData = function(){
     }
   }
 
-  window.location.reload();
+  //window.location.reload();
 }
 
 window.plugin.InventoryMapBot.optExport = function() {
