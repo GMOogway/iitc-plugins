@@ -2,7 +2,7 @@
 // @id             iitc-plugin-InventoryMapBot@GMOogway
 // @name           IITC plugin: InventoryMapBot plugin
 // @category       Controls
-// @version        0.3.8.20190214
+// @version        0.3.9.20190214
 // @author         GMOogway
 // @description    [local-2019-02-14] InventoryMapBot plugin by GMOogway, works with sync.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
@@ -595,7 +595,7 @@ window.plugin.InventoryMapBot.addNoKeysPortal = function(guid){
     data[window.plugin.InventoryMapBot.NOKEYSPORTALS]['items'] = {};
   }
   var p = window.portals[guid];
-  data[window.plugin.InventoryMapBot.NOKEYSPORTALS]['items'][p['options']['guid']] = {
+  var portalInfo = {
     "amount": 0,
     "guid": p['options']['guid'],
     "latitude": p['options']['data']['latE6'] / 1E6,
@@ -604,8 +604,13 @@ window.plugin.InventoryMapBot.addNoKeysPortal = function(guid){
     "image": p['options']['data']['image'],
     "address": "Export form InventoryMapBot plugin"
   };
-  window.plugin.InventoryMapBot.dataObj = data;
-  window.plugin.InventoryMapBot.saveStorage();
+  if (p['name'] && p['image']){
+    data[window.plugin.InventoryMapBot.NOKEYSPORTALS]['items'][p['options']['guid']] = portalInfo;
+    window.plugin.InventoryMapBot.dataObj = data;
+    window.plugin.InventoryMapBot.saveStorage();
+  }else{
+    window.plugin.InventoryMapBot.removePortalByGuid(p['options']['guid']);
+  }
 }
 
 window.plugin.InventoryMapBot.removePortalByGuid = function(portalguid){
