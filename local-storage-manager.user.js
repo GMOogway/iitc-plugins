@@ -4,7 +4,7 @@
 // @category       Controls
 // @version        0.1.0.20190214
 // @author         GMOogway
-// @description    [local-2019-02-14] InventoryMapBot plugin by GMOogway, works with sync.
+// @description    [local-2019-02-14] LocalStorageManager plugin by GMOogway.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/local-storage-manager.user.js
 // @updateURL      https://github.com/GMOogway/iitc-plugins/raw/master/local-storage-manager.user.js
 // @namespace      https://github.com/GMOogway/iitc-plugins
@@ -29,7 +29,7 @@ plugin_info.pluginId = 'LocalStorageManager';
 // use own namespace for plugin
 window.plugin.LocalStorageManager = function() {};
 
-window.plugin.LocalStorageManager.IS_DEBUG = true;
+window.plugin.LocalStorageManager.IS_DEBUG = false;
 
 window.plugin.LocalStorageManager.getDateTime = function() {
   var date=new Date();
