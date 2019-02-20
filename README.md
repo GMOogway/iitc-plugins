@@ -20,3 +20,8 @@ after you click on a line, the cross link is automatically checked and identifie
 a tool for exchanging data between bookmarks, key, and inventorymapbot.
 
 用于bookmarker、key插件与inventorymapbot之间交换数据。
+
+## [local-storage-manager](../../raw/master/local-storage-manager.user.js)
+a tool for managing localstorage.
+
+主要给手机上的iitc-mobile用用。
