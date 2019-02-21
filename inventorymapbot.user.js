@@ -2,7 +2,7 @@
 // @id             iitc-plugin-InventoryMapBot@GMOogway
 // @name           IITC plugin: InventoryMapBot plugin
 // @category       Controls
-// @version        0.4.0.20190214
+// @version        0.4.1.20190214
 // @author         GMOogway
 // @description    [local-2019-02-14] InventoryMapBot plugin by GMOogway, works with sync.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
@@ -29,7 +29,7 @@ plugin_info.pluginId = 'InventoryMapBot';
 // use own namespace for plugin
 window.plugin.InventoryMapBot = function() {};
 
-window.plugin.InventoryMapBot.IS_DEBUG = true;
+window.plugin.InventoryMapBot.IS_DEBUG = false;
 window.plugin.InventoryMapBot.KEY_STORAGE = 'plugin-inventorymapbot-data';
 window.plugin.InventoryMapBot.STATUS = 'stop';
 window.plugin.InventoryMapBot.NOKEYSPORTALS = 'agent-no-keys-protals';
@@ -79,27 +79,24 @@ window.plugin.InventoryMapBot.debug = function(msg) {
   }
 }
 
-window.plugin.InventoryMapBot.resetDataObj = function(){
-  window.plugin.InventoryMapBot.dataObj = {};
-}
-
 window.plugin.InventoryMapBot.saveStorage = function() {
-  localStorage[window.plugin.InventoryMapBot.KEY_STORAGE] = JSON.stringify(window.plugin.InventoryMapBot.dataObj);
-  window.plugin.InventoryMapBot.syncInventoryMapBot();
-  //window.plugin.InventoryMapBot.resetDataObj();
+  window.plugin.InventoryMapBot.storeLocal(window.plugin.InventoryMapBot.KEY);
+  window.plugin.InventoryMapBot.syncNow();
 }
 
 window.plugin.InventoryMapBot.loadStorage = function() {
-  window.plugin.InventoryMapBot.dataObj = JSON.parse(localStorage[window.plugin.InventoryMapBot.KEY_STORAGE]);
+  window.plugin.InventoryMapBot.loadLocal(window.plugin.InventoryMapBot.KEY);
 }
 
 window.plugin.InventoryMapBot.resetStorage = function() {
+  window.plugin.InventoryMapBot.loadLocal(window.plugin.InventoryMapBot.KEY);
+  for(var agent in window.plugin.InventoryMapBot.dataObj){
+    window.plugin.InventoryMapBot.updateQueue[agent] = undefined;
+  }
   window.plugin.InventoryMapBot.dataObj = {};
   window.plugin.InventoryMapBot.dataObj[window.plugin.InventoryMapBot.NOKEYSPORTALS] = {'agent':window.plugin.InventoryMapBot.NOKEYSPORTALS, 'items':{}};
   window.plugin.InventoryMapBot.storeLocal(window.plugin.InventoryMapBot.KEY);
-  //window.plugin.InventoryMapBot.updateQueue = {};
-  //window.plugin.InventoryMapBot.updatingQueue = window.plugin.InventoryMapBot.dataObj;
-  window.plugin.InventoryMapBot.syncInventoryMapBot();
+  window.plugin.InventoryMapBot.syncNow();
 }
 
 window.plugin.InventoryMapBot.createStorage = function() {
@@ -121,9 +118,16 @@ window.plugin.InventoryMapBot.delaySync = function() {
 // Store the updateQueue in updatingQueue and upload
 window.plugin.InventoryMapBot.syncNow = function() {
   if(!window.plugin.InventoryMapBot.enableSync) return;
-  $.extend(window.plugin.InventoryMapBot.updatingQueue, window.plugin.InventoryMapBot.updateQueue);
-  window.plugin.InventoryMapBot.updateQueue = {};
+  //$.extend(window.plugin.InventoryMapBot.updatingQueue, window.plugin.InventoryMapBot.updateQueue);
+  window.plugin.InventoryMapBot.loadLocal(window.plugin.InventoryMapBot.KEY);
+  window.plugin.InventoryMapBot.updatingQueue = window.plugin.InventoryMapBot.dataObj;
+  for(var agent in window.plugin.InventoryMapBot.updateQueue){
+    if (!window.plugin.InventoryMapBot.updatingQueue[agent]){
+      window.plugin.InventoryMapBot.updatingQueue[agent] = undefined;
+    }
+  }
   window.plugin.InventoryMapBot.storeLocal(window.plugin.InventoryMapBot.UPDATING_QUEUE);
+  window.plugin.InventoryMapBot.updateQueue = {};
   window.plugin.InventoryMapBot.storeLocal(window.plugin.InventoryMapBot.UPDATE_QUEUE);
   window.plugin.sync.updateMap('InventoryMapBot', window.plugin.InventoryMapBot.KEY.field, Object.keys(window.plugin.InventoryMapBot.updatingQueue));
 }
@@ -140,6 +144,7 @@ window.plugin.InventoryMapBot.syncCallback = function(pluginName, fieldName, e, 
     window.plugin.InventoryMapBot.storeLocal(window.plugin.InventoryMapBot.KEY);
     // All data is replaced if other client update the data during this client offline,
     if(fullUpdated) {
+    	//fullUpdated
       return;
     }
     if(!e) return;
@@ -182,9 +187,6 @@ window.plugin.InventoryMapBot.loadLocal = function(mapping) {
 }
 
 window.plugin.InventoryMapBot.syncInventoryMapBot = function() {
-  window.plugin.InventoryMapBot.loadLocal(window.plugin.InventoryMapBot.KEY);
-  window.plugin.InventoryMapBot.updateQueue = window.plugin.InventoryMapBot.dataObj;
-  window.plugin.InventoryMapBot.storeLocal(window.plugin.InventoryMapBot.UPDATE_QUEUE);
   window.plugin.InventoryMapBot.delaySync();
 }
 
@@ -356,6 +358,9 @@ window.plugin.InventoryMapBot.optCleanItems = function(data){
      if (!data['items'][item]['latitude'] || !data['items'][item]['longitude']){
        delete data['items'][item];
      }
+     if (data['agent'] == window.plugin.InventoryMapBot.NOKEYSPORTALS){
+       data['items'][item]['amount'] = 0;
+     }
    }
    return data;
 
@@ -386,21 +391,6 @@ window.plugin.InventoryMapBot.resetBookmarks = function(){
   window.plugin.bookmarks.loadStorage();
   window.plugin.bookmarks.refreshBkmrks();
   window.runHooks('pluginBkmrksEdit', {"target": "all", "action": "reset"});
-  /*
-  delete localStorage[window.plugin.bookmarks.KEY.key];
-  delete localStorage[window.plugin.bookmarks.UPDATE_QUEUE.key];
-  delete localStorage[window.plugin.bookmarks.UPDATING_QUEUE.key];
-  localStorage[window.plugin.bookmarks.KEY_STATUS_BOX] = '{"show":0,"page":0,"pos":{"x":100,"y":100}}';
-  window.plugin.bookmarks.createStorage();
-  window.plugin.bookmarks.loadStorage();
-  window.plugin.bookmarks.refreshBkmrks();
-  window.plugin.bookmarks.loadLocal(window.plugin.bookmarks.KEY);
-  window.plugin.bookmarks.updateQueue = {};
-  window.plugin.bookmarks.storeLocal(window.plugin.bookmarks.UPDATE_QUEUE);
-  window.plugin.bookmarks.loadStorage();
-  window.plugin.bookmarks.updatingQueue = null;//window.plugin.bookmarks.bkmrksObj;
-  window.plugin.bookmarks.storeLocal(window.plugin.bookmarks.UPDATING_QUEUE);
-  window.plugin.sync.updateMap('bookmarks', window.plugin.bookmarks.KEY.field, Object.keys(window.plugin.bookmarks.updatingQueue));*/
 }
 
 window.plugin.InventoryMapBot.optReset = function() {
@@ -423,29 +413,18 @@ window.plugin.InventoryMapBot.optReset = function() {
 window.plugin.InventoryMapBot.optImportSingle = function(data){
   try{
     window.plugin.InventoryMapBot.loadStorage();
-    if (window.plugin.InventoryMapBot.getJsonLength(window.plugin.InventoryMapBot.dataObj) == 1){
-      var result = confirm('It looks like this is your first time importing data. This operation will erase all bookmarks and keys data. Are you sure?');
-      if (result){
-        data = window.plugin.InventoryMapBot.optCleanItems(data);
-        if (data !== undefined && data['agent'] != window.plugin.InventoryMapBot.NOKEYSPORTALS){
-          window.plugin.InventoryMapBot.dataObj[data['agent']] = {};
-          window.plugin.InventoryMapBot.dataObj[data['agent']]['agent'] = data['agent'];
-          window.plugin.InventoryMapBot.dataObj[data['agent']]['items'] = data['items'];
-          window.plugin.InventoryMapBot.saveStorage();
-          return true;
-        }
-      }else{
-        return false;
+    data = window.plugin.InventoryMapBot.optCleanItems(data);
+    if (data !== undefined){
+      window.plugin.InventoryMapBot.dataObj[data['agent']] = {};
+      window.plugin.InventoryMapBot.dataObj[data['agent']]['agent'] = data['agent'];
+      window.plugin.InventoryMapBot.dataObj[data['agent']]['items'] = data['items'];
+      if (!window.plugin.InventoryMapBot.dataObj[window.plugin.InventoryMapBot.NOKEYSPORTALS]){
+        window.plugin.InventoryMapBot.dataObj[window.plugin.InventoryMapBot.NOKEYSPORTALS] = {'agent':window.plugin.InventoryMapBot.NOKEYSPORTALS, 'items':{}};
       }
+      window.plugin.InventoryMapBot.saveStorage();
+      return true;
     }else{
-      data = window.plugin.InventoryMapBot.optCleanItems(data);
-      if (data !== undefined){
-        window.plugin.InventoryMapBot.dataObj[data['agent']] = {};
-        window.plugin.InventoryMapBot.dataObj[data['agent']]['agent'] = data['agent'];
-        window.plugin.InventoryMapBot.dataObj[data['agent']]['items'] = data['items'];
-        window.plugin.InventoryMapBot.saveStorage();
-        return true;
-      }
+      return false;
     }
   }catch(e){
     window.plugin.InventoryMapBot.optAlert('<span style="color: #f88">Import failed: ' + e + '</span>');
@@ -456,10 +435,10 @@ window.plugin.InventoryMapBot.optImportSingle = function(data){
 window.plugin.InventoryMapBot.optImportMultiple = function(data){
   try{
     var result = confirm('This operation will erase all bookmarks and keys data. Are you sure?');
+    var agent;
     if (result){
-      for(var agent in data){
+      for(agent in data){
         var agentdata = window.plugin.InventoryMapBot.optCleanItems(data[agent]);
-        window.plugin.InventoryMapBot.debug(agentdata);
         if (agentdata !== undefined){
           data[agent] = {};
           data[agent]['agent'] = agent;
@@ -468,7 +447,15 @@ window.plugin.InventoryMapBot.optImportMultiple = function(data){
           delete data[agent];
         }
       }
-      window.plugin.InventoryMapBot.resetStorage();
+      if (!data[window.plugin.InventoryMapBot.NOKEYSPORTALS]){
+        data[window.plugin.InventoryMapBot.NOKEYSPORTALS] = {'agent':window.plugin.InventoryMapBot.NOKEYSPORTALS, 'items':{}};
+      }
+      window.plugin.InventoryMapBot.loadLocal(window.plugin.InventoryMapBot.KEY);
+      for(agent in window.plugin.InventoryMapBot.dataObj){
+        if (!data[agent]){
+          window.plugin.InventoryMapBot.updateQueue[agent] = undefined;
+        }
+      }
       window.plugin.InventoryMapBot.dataObj = data;
       window.plugin.InventoryMapBot.saveStorage();
       return true;
@@ -499,18 +486,8 @@ window.plugin.InventoryMapBot.optRefreshBkmksKeysData = function(){
     }
   }
   window.plugin.bookmarks.saveStorage();
-  /*
-  window.plugin.bookmarks.loadStorage();
-  window.plugin.bookmarks.refreshBkmrks();
-  window.plugin.bookmarks.loadLocal(window.plugin.bookmarks.KEY);
-  */
   window.plugin.bookmarks.refreshBkmrks();
   window.runHooks('pluginBkmrksEdit', {"target": "all", "action": "import"});
-  //window.plugin.bookmarks.updateQueue = {};
-  //window.plugin.bookmarks.storeLocal(window.plugin.bookmarks.UPDATE_QUEUE);
-  //window.plugin.bookmarks.updatingQueue = window.plugin.bookmarks.bkmrksObj;
-  //window.plugin.bookmarks.storeLocal(window.plugin.bookmarks.UPDATING_QUEUE);
-  //window.plugin.sync.updateMap('bookmarks', window.plugin.bookmarks.KEY.field, Object.keys(window.plugin.bookmarks.updatingQueue));
 
   //to keys
   window.plugin.keys.loadKeys();
@@ -519,8 +496,6 @@ window.plugin.InventoryMapBot.optRefreshBkmksKeysData = function(){
       window.plugin.keys.addKey(data[agent]['items'][guid]['amount'], guid);
     }
   }
-
-  //window.location.reload();
 }
 
 window.plugin.InventoryMapBot.optExport = function() {
