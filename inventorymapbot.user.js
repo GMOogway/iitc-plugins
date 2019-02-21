@@ -2,7 +2,7 @@
 // @id             iitc-plugin-InventoryMapBot@GMOogway
 // @name           IITC plugin: InventoryMapBot plugin
 // @category       Controls
-// @version        0.4.2.20190214
+// @version        0.4.3.20190214
 // @author         GMOogway
 // @description    [local-2019-02-14] InventoryMapBot plugin by GMOogway, works with sync.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
@@ -29,7 +29,7 @@ plugin_info.pluginId = 'InventoryMapBot';
 // use own namespace for plugin
 window.plugin.InventoryMapBot = function() {};
 
-window.plugin.InventoryMapBot.IS_DEBUG = false;
+window.plugin.InventoryMapBot.IS_DEBUG = true;
 window.plugin.InventoryMapBot.KEY_STORAGE = 'plugin-inventorymapbot-data';
 window.plugin.InventoryMapBot.STATUS = 'stop';
 window.plugin.InventoryMapBot.NOKEYSPORTALS = 'agent-no-keys-protals';
@@ -65,7 +65,7 @@ window.plugin.InventoryMapBot.getDateTime = function() {
     case 0:week="Sunday ";break;
     default:week="";break;
   }
-  return (year+"/"+month+"/"+day+"/"+" "+week+" "+hour+":"+minute+":"+second);
+  return (year+"/"+month+"/"+day+" "+week+" "+hour+":"+minute+":"+second);
 }
 
 window.plugin.InventoryMapBot.debug = function(msg) {
@@ -90,6 +90,7 @@ window.plugin.InventoryMapBot.loadStorage = function() {
 
 window.plugin.InventoryMapBot.resetStorage = function() {
   window.plugin.InventoryMapBot.loadLocal(window.plugin.InventoryMapBot.KEY);
+  window.plugin.InventoryMapBot.updateQueue = {};
   for(var agent in window.plugin.InventoryMapBot.dataObj){
     window.plugin.InventoryMapBot.updateQueue[agent] = undefined;
   }
@@ -190,11 +191,118 @@ window.plugin.InventoryMapBot.syncInventoryMapBot = function() {
   window.plugin.InventoryMapBot.delaySync();
 }
 
+window.plugin.InventoryMapBot.optExportToXLSX = function() {
+  if (typeof(XLSX) == undefined){
+    window.plugin.InventoryMapBot.optAlert('Not ready!');
+    return;
+  }
+
+  window.plugin.InventoryMapBot.loadLocal(window.plugin.InventoryMapBot.KEY);
+  var data = window.plugin.InventoryMapBot.dataObj;
+  var json = [];
+  for(var agent in data){
+    for(var guid in data[agent]['items']){
+      json.push({   "agent":agent,
+                    "name":data[agent]['items'][guid]['name'],
+                    "amount":data[agent]['items'][guid]['amount'],
+                    "guid":guid,
+                    "latitude":data[agent]['items'][guid]["latitude"],
+                    "longitude":data[agent]['items'][guid]["longitude"],
+                    "image":data[agent]['items'][guid]["image"],
+                    "address":data[agent]['items'][guid]["address"]}
+                  );
+    }
+  }
+ //window.plugin.InventoryMapBot.debug(json);
+  var wb = XLSX.utils.book_new();
+  var ws = XLSX.utils.json_to_sheet(json, {header:["agent","name","amount","guid","latitude","longitude","image","address"]});
+  XLSX.utils.book_append_sheet(wb, ws);
+  var wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+  var xlsxObj = new Blob([wbout],{type:"application/octet-stream"});
+  var xlsxDownloadElement = document.createElement("a");
+  xlsxDownloadElement.download = 'inventory ' + window.plugin.InventoryMapBot.getDateTime() + '.xlsx';
+  xlsxDownloadElement.href = URL.createObjectURL(xlsxObj);
+  xlsxDownloadElement.click();
+  setTimeout(function () {
+    URL.revokeObjectURL(xlsxObj);
+  }, 500);
+}
+
+window.plugin.InventoryMapBot.optImportFromXLSX = function(){
+  if (typeof(XLSX) == undefined){
+    window.plugin.InventoryMapBot.optAlert('Not ready!');
+    return;
+  }
+
+  dialog({
+    html: '<div id="plugin-InventoryMapBot-import-xlsx-div" style="border: 1px solid #ffce00;margin: 20px 48px;width:65%;text-align:center;"><input type="file" onchange="window.plugin.InventoryMapBot.importXLSX(this)"/></div>',
+    dialogClass: 'ui-dialog',
+    id: 'plugin-InventoryMapBot-import-xlsx',
+    title: 'Choose a xlsx file'
+  });
+}
+
+window.plugin.InventoryMapBot.importXLSX = function(obj){
+  if (!obj.files){
+    return;
+  }
+try{
+  $("#plugin-InventoryMapBot-import-xlsx-div").html("working");
+  var f = obj.files[0];
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    var data = e.target.result;
+    var wb = XLSX.read(data, {type: 'binary'});
+    var sheet_name_list = wb.SheetNames;
+    var json = XLSX.utils.sheet_to_json(wb.Sheets[sheet_name_list[0]]);
+    var dataObj = {};
+    for (var row in json){
+      //window.plugin.InventoryMapBot.debug(row);
+      window.plugin.InventoryMapBot.debug(json[row]);
+      if (json[row]['agent'] != '' && json[row]['name'] != '' && json[row]['amount'] >= 0 && json[row]['guid'] != '' && json[row]['latitude'] > 0 && json[row]['longitude'] > 0 && json[row]['image'] != '' && json[row]['address'] != ''){
+        if (!dataObj[json[row]['agent']]){
+          dataObj[json[row]['agent']] = {};
+        }
+        if (!dataObj[json[row]['agent']]['agent']){
+          dataObj[json[row]['agent']]['agent'] = json[row]['agent'];
+        }
+        if (!dataObj[json[row]['agent']]['items']){
+          dataObj[json[row]['agent']]['items'] = {};
+        }
+        dataObj[json[row]['agent']]['items'][json[row]['guid']] = {
+          'amount':    (json[row]['agent'] == window.plugin.InventoryMapBot.NOKEYSPORTALS)?0:json[row]['amount'],
+          'name':      json[row]['name'],
+          'guid':      json[row]['guid'],
+          'latitude':  json[row]['latitude'],
+          'longitude': json[row]['longitude'],
+          'image':     json[row]['image'],
+          'address':   json[row]['address']
+        }
+      }else{
+        $("#plugin-InventoryMapBot-import-xlsx-div").html("Error");
+        return;
+      }
+    }
+    //window.plugin.InventoryMapBot.debug(dataObj);
+    window.plugin.InventoryMapBot.dataObj = dataObj;
+    window.plugin.InventoryMapBot.saveStorage();
+    window.plugin.InventoryMapBot.optRefreshBkmksKeysData();
+    window.plugin.InventoryMapBot.optAlert('Successful. ');
+    $("#plugin-InventoryMapBot-import-xlsx-div").html("Over");
+  };
+  reader.readAsBinaryString(f);
+}catch(e){
+  $("#plugin-InventoryMapBot-import-xlsx-div").html("Error");
+}
+}
+
 window.plugin.InventoryMapBot.setupContent = function() {
   plugin.InventoryMapBot.htmlCallSetBox = '<a onclick="window.plugin.InventoryMapBot.manualOpt();return false;">InventoryMapBot Opt</a>';
   var actions = '';
-  actions += '<a id="InventoryMapBot_status" onclick="window.plugin.InventoryMapBot.optExport();return false;">Export</a>';
-  actions += '<a onclick="window.plugin.InventoryMapBot.optImport();return false;">Import</a>';
+  actions += '<a id="InventoryMapBot_status" onclick="window.plugin.InventoryMapBot.optExport();return false;">Export to JSON</a>';
+  actions += '<a onclick="window.plugin.InventoryMapBot.optImport();return false;">Import From JSON</a>';
+  actions += '<a id="InventoryMapBot_export_to_xlsx" onclick="window.plugin.InventoryMapBot.optExportToXLSX();return false;">Export to XLSX</a>';
+  actions += '<a id="InventoryMapBot_export_from_xlsx" onclick="window.plugin.InventoryMapBot.optImportFromXLSX();return false;">Import Form XLSX</a>';
   actions += '<a onclick="window.plugin.InventoryMapBot.optReset();return false;">Reset</a>';
   plugin.InventoryMapBot.htmlSetbox = '<div id="InventoryMapBotSetbox">' + actions + '</div>';
 }
@@ -303,7 +411,7 @@ window.plugin.InventoryMapBot.manualOpt = function() {
     id: 'plugin-InventoryMapBot-options',
     title: 'InventoryMapBot Options'
   });
-  window.plugin.InventoryMapBot.optSetStatus(window.plugin.InventoryMapBot.STATUS);
+  //window.plugin.InventoryMapBot.optSetStatus(window.plugin.InventoryMapBot.STATUS);
 }
 
 window.plugin.InventoryMapBot.optCheckRequirePlugins = function() {
@@ -451,6 +559,7 @@ window.plugin.InventoryMapBot.optImportMultiple = function(data){
         data[window.plugin.InventoryMapBot.NOKEYSPORTALS] = {'agent':window.plugin.InventoryMapBot.NOKEYSPORTALS, 'items':{}};
       }
       window.plugin.InventoryMapBot.loadLocal(window.plugin.InventoryMapBot.KEY);
+      window.plugin.InventoryMapBot.updateQueue = {};
       for(agent in window.plugin.InventoryMapBot.dataObj){
         if (!data[agent]){
           window.plugin.InventoryMapBot.updateQueue[agent] = undefined;
@@ -769,6 +878,7 @@ var setup = function() {
   window.plugin.InventoryMapBot.createStorage();
   window.addHook('portalDetailsUpdated', window.plugin.InventoryMapBot.addToSidebar);
   window.addHook('iitcLoaded', window.plugin.InventoryMapBot.registerFieldForSyncing);
+  load('https://cdn.staticfile.org/xlsx/0.14.1/xlsx.full.min.js');
   const bookmarksTimeId = setInterval(() => {
     if (window.plugin.bookmarks) {
       window.plugin.InventoryMapBot.pluginBookmarksInjection();
