@@ -2,7 +2,7 @@
 // @id             iitc-plugin-InventoryMapBot@GMOogway
 // @name           IITC plugin: InventoryMapBot plugin
 // @category       Controls
-// @version        0.4.1.20190214
+// @version        0.4.2.20190214
 // @author         GMOogway
 // @description    [local-2019-02-14] InventoryMapBot plugin by GMOogway, works with sync.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
@@ -625,16 +625,6 @@ window.plugin.InventoryMapBot.editStar = function(data) {
   }
 }
 
-window.plugin.InventoryMapBot.removePluginKeysHook = function(){
-  var index;
-  $.each(window._hooks['portalDetailsUpdated'], function(ind, callback) {
-    if (callback.toString().indexOf('plugin.keys.contentHTML') >= 0){
-      index = ind;
-    }
-  });
-  window._hooks['portalDetailsUpdated'].splice(index,1);
-}
-
 window.plugin.InventoryMapBot.getPortalKeysHtmlInfo = function(){
   var guid = window.selectedPortal;
   var html ='';
@@ -759,18 +749,36 @@ window.plugin.InventoryMapBot.addToSidebar = function(){
   window.plugin.keys.updateDisplayCount();
 }
 
+window.plugin.InventoryMapBot.pluginKeysInjection= function(){
+  var index;
+  $.each(window._hooks['portalDetailsUpdated'], function(ind, callback) {
+    if (callback.toString().indexOf('plugin.keys.contentHTML') >= 0){
+      index = ind;
+    }
+  });
+  window._hooks['portalDetailsUpdated'].splice(index,1);
+}
+
+window.plugin.InventoryMapBot.pluginBookmarksInjection= function(){
+  window.addHook('pluginBkmrksEdit', window.plugin.InventoryMapBot.editStar);
+}
 var setup = function() {
   window.plugin.InventoryMapBot.setupCSS();
   window.plugin.InventoryMapBot.setupContent();
   $('#toolbox').append(window.plugin.InventoryMapBot.htmlCallSetBox);
   window.plugin.InventoryMapBot.createStorage();
   window.addHook('portalDetailsUpdated', window.plugin.InventoryMapBot.addToSidebar);
-  window.addHook('pluginBkmrksEdit', window.plugin.InventoryMapBot.editStar);
   window.addHook('iitcLoaded', window.plugin.InventoryMapBot.registerFieldForSyncing);
-  const timeId = setInterval(() => {
+  const bookmarksTimeId = setInterval(() => {
+    if (window.plugin.bookmarks) {
+      window.plugin.InventoryMapBot.pluginBookmarksInjection();
+      clearInterval(bookmarksTimeId);
+    }
+  },1000)
+  const keysTimeId = setInterval(() => {
     if (window.plugin.keys) {
-      window.plugin.InventoryMapBot.removePluginKeysHook();
-      clearInterval(timeId);
+      window.plugin.InventoryMapBot.pluginKeysInjection();
+      clearInterval(keysTimeId);
     }
   },1000)
 }
