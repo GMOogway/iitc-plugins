@@ -878,6 +878,7 @@ var setup = function() {
   window.plugin.InventoryMapBot.createStorage();
   window.addHook('portalDetailsUpdated', window.plugin.InventoryMapBot.addToSidebar);
   window.addHook('iitcLoaded', window.plugin.InventoryMapBot.registerFieldForSyncing);
+  window.plugin.InventoryMapBot.loadStorage();
   load('https://cdn.staticfile.org/xlsx/0.14.1/xlsx.full.min.js');
   const bookmarksTimeId = setInterval(() => {
     if (window.plugin.bookmarks) {
