@@ -921,26 +921,26 @@ window.plugin.InventoryMapBot.pluginBookmarksInjection= function(){
       }
       element += elemGenericFolder;
 
-      var filterOnchangeJs = '\
-<script type="text/javascript">\
-  $("#bkmrk-filter").bind("input porpertychange",function(){\
-    var filter = $("#bkmrk-filter").val();\
-    if (filter === ""){\
-      var uuu = $("#bkmrksAutoDrawer a.bkmrk").each(function(i){\
-        $(this).show();\
-      });\
-    }else{\
-      var uuu = $("#bkmrksAutoDrawer a.bkmrk").each(function(i){\
-        var bookmarkName = $(this).text();\
-        if (bookmarkName.indexOf(filter) >= 0){\
-          $(this).show();\
-        }else{\
-          $(this).hide();\
-        }\
-      });\
-    }\
-  });\
-</script>';
+      var filterOnchangeJs = '  \
+                               <script type="text/javascript">\
+                                 $("#bkmrk-filter").bind("input porpertychange",function(){\
+                                   var filter = $("#bkmrk-filter").val();\
+                                   if (filter === ""){\
+                                     var uuu = $("#bkmrksAutoDrawer a.bkmrk").each(function(i){\
+                                       $(this).show();\
+                                     });\
+                                   }else{\
+                                     var uuu = $("#bkmrksAutoDrawer a.bkmrk").each(function(i){\
+                                       var bookmarkName = $(this).text();\
+                                       if (bookmarkName.indexOf(filter) >= 0){\
+                                         $(this).show();\
+                                       }else{\
+                                         $(this).hide();\
+                                       }\
+                                     });\
+                                   }\
+                                 });\
+                               </script>';
 
       // Append all folders and bookmarks
       r = '<div id="bkmrksAutoDrawer">'
