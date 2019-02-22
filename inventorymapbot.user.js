@@ -2,7 +2,7 @@
 // @id             iitc-plugin-InventoryMapBot@GMOogway
 // @name           IITC plugin: InventoryMapBot plugin
 // @category       Controls
-// @version        0.4.4.20190214
+// @version        0.4.5.20190214
 // @author         GMOogway
 // @description    [local-2019-02-14] InventoryMapBot plugin by GMOogway, works with sync.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
@@ -877,6 +877,86 @@ window.plugin.InventoryMapBot.pluginKeysInjection= function(){
 
 window.plugin.InventoryMapBot.pluginBookmarksInjection= function(){
   window.addHook('pluginBkmrksEdit', window.plugin.InventoryMapBot.editStar);
+
+    window.plugin.bookmarks.dialogLoadList = function() {
+    var r = 'The "<a href="https://iitc.modos189.ru/desktop.html" target="_BLANK"><strong>Draw Tools</strong></a>" plugin is required.</span>';
+
+    if(!window.plugin.bookmarks || !window.plugin.drawTools) {
+      $('.ui-dialog-autodrawer .ui-dialog-buttonset .ui-button:not(:first)').hide();
+    }
+    else{
+      var portalsList = JSON.parse(localStorage['plugin-bookmarks']);
+      var element = '';
+      var elementTemp = '';
+      var elemGenericFolder = '';
+
+      // For each folder
+      var list = portalsList.portals;
+      for(var idFolders in list) {
+        var folders = list[idFolders];
+
+        // Create a label and a anchor for the sortable
+        var folderLabel = '<a class="folderLabel" onclick="$(this).siblings(\'div\').toggle();return false;">'+folders['label']+'</a>';
+
+        // Create a folder
+        elementTemp = '<div class="bookmarkFolder" id="'+idFolders+'">'+folderLabel+'<div>';
+
+        // For each bookmark
+        var fold = folders['bkmrk'];
+        for(var idBkmrk in fold) {
+          var bkmrk = fold[idBkmrk];
+          var label = bkmrk['label'];
+          var latlng = bkmrk['latlng'];
+
+          // Create the bookmark
+          elementTemp += '<a class="bkmrk" id="'+idBkmrk+'" onclick="$(this).toggleClass(\'selected\');return false" data-latlng="['+latlng+']">'+label+'</a>';
+        }
+        elementTemp += '</div></div>';
+
+        if(idFolders !== window.plugin.bookmarks.KEY_OTHER_BKMRK) {
+          element += elementTemp;
+        } else {
+          elemGenericFolder += elementTemp;
+        }
+      }
+      element += elemGenericFolder;
+
+      var filterOnchangeJs = '\
+<script type="text/javascript">\
+  $("#bkmrk-filter").bind("input porpertychange",function(){\
+    var filter = $("#bkmrk-filter").val();\
+    if (filter === ""){\
+      var uuu = $("#bkmrksAutoDrawer a.bkmrk").each(function(i){\
+        $(this).show();\
+      });\
+    }else{\
+      var uuu = $("#bkmrksAutoDrawer a.bkmrk").each(function(i){\
+        var bookmarkName = $(this).text();\
+        if (bookmarkName.indexOf(filter) >= 0){\
+          $(this).show();\
+        }else{\
+          $(this).hide();\
+        }\
+      });\
+    }\
+  });\
+</script>';
+
+      // Append all folders and bookmarks
+      r = '<div id="bkmrksAutoDrawer">'
+        + '<label style="margin-bottom: 9px; display: block;">'
+        + '<input style="vertical-align: middle;" type="checkbox" id="bkmrkClearSelection" checked>'
+        + ' Clear selection after drawing</label>'
+        + '<p style="margin-bottom:9px;color:red">You must select 2 or 3 portals!</p>'
+        + 'BookMarks Filter :<input id="bkmrk-filter" type="text" style="margin-bottom: 4px; border: 1px solid #20a8b1;width:100%;"/>'
+        + filterOnchangeJs
+        + '<div onclick="window.plugin.bookmarks.autoDrawOnSelect();return false;">'
+        + element
+        + '</div>'
+        + '</div>';
+    }
+    return r;
+  }
 }
 var setup = function() {
   window.plugin.InventoryMapBot.setupCSS();
