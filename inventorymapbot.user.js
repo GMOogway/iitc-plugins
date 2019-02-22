@@ -29,7 +29,7 @@ plugin_info.pluginId = 'InventoryMapBot';
 // use own namespace for plugin
 window.plugin.InventoryMapBot = function() {};
 
-window.plugin.InventoryMapBot.IS_DEBUG = true;
+window.plugin.InventoryMapBot.IS_DEBUG = false;
 window.plugin.InventoryMapBot.KEY_STORAGE = 'plugin-inventorymapbot-data';
 window.plugin.InventoryMapBot.STATUS = 'stop';
 window.plugin.InventoryMapBot.NOKEYSPORTALS = 'agent-no-keys-protals';
@@ -246,54 +246,51 @@ window.plugin.InventoryMapBot.importXLSX = function(obj){
   if (!obj.files){
     return;
   }
-try{
-  $("#plugin-InventoryMapBot-import-xlsx-div").html("working");
-  var f = obj.files[0];
-  var reader = new FileReader();
-  reader.onload = function (e) {
-    var data = e.target.result;
-    var wb = XLSX.read(data, {type: 'binary'});
-    var sheet_name_list = wb.SheetNames;
-    var json = XLSX.utils.sheet_to_json(wb.Sheets[sheet_name_list[0]]);
-    var dataObj = {};
-    for (var row in json){
-      //window.plugin.InventoryMapBot.debug(row);
-      window.plugin.InventoryMapBot.debug(json[row]);
-      if (json[row]['agent'] != '' && json[row]['name'] != '' && json[row]['amount'] >= 0 && json[row]['guid'] != '' && json[row]['latitude'] > 0 && json[row]['longitude'] > 0 && json[row]['image'] != '' && json[row]['address'] != ''){
-        if (!dataObj[json[row]['agent']]){
-          dataObj[json[row]['agent']] = {};
+  try{
+    $("#plugin-InventoryMapBot-import-xlsx-div").html("working");
+    var f = obj.files[0];
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var data = e.target.result;
+      var wb = XLSX.read(data, {type: 'binary'});
+      var sheet_name_list = wb.SheetNames;
+      var json = XLSX.utils.sheet_to_json(wb.Sheets[sheet_name_list[0]]);
+      var dataObj = {};
+      for (var row in json){
+        //window.plugin.InventoryMapBot.debug(row);
+        if (json[row]['agent'].replace(/(^s*)|(s*$)/g, "").length > 0 && json[row]['name'].replace(/(^s*)|(s*$)/g, "").length > 0 && Math.floor(json[row]['amount']) === json[row]['amount'] && json[row]['amount'] >= 0 && json[row]['guid'].replace(/(^s*)|(s*$)/g, "").length > 0 && !isNaN(json[row]['latitude']) && json[row]['latitude'] > -90 && json[row]['latitude'] < 90 && !isNaN(json[row]['longitude']) && json[row]['longitude'] > -180 && json[row]['longitude'] < 180 && json[row]['image'].replace(/(^s*)|(s*$)/g, "").length > 0 && json[row]['address'].replace(/(^s*)|(s*$)/g, "").length > 0){
+          if (!dataObj[json[row]['agent']]){
+            dataObj[json[row]['agent']] = {};
+          }
+          if (!dataObj[json[row]['agent']]['agent']){
+            dataObj[json[row]['agent']]['agent'] = json[row]['agent'];
+          }
+          if (!dataObj[json[row]['agent']]['items']){
+            dataObj[json[row]['agent']]['items'] = {};
+          }
+          dataObj[json[row]['agent']]['items'][json[row]['guid']] = {
+            'amount':    (json[row]['agent'] == window.plugin.InventoryMapBot.NOKEYSPORTALS)?0:json[row]['amount'],
+            'name':      json[row]['name'],
+            'guid':      json[row]['guid'],
+            'latitude':  json[row]['latitude'],
+            'longitude': json[row]['longitude'],
+            'image':     json[row]['image'],
+            'address':   json[row]['address']
+          }
+        }else{
+          $("#plugin-InventoryMapBot-import-xlsx-div").html("Invaild format");
+          return;
         }
-        if (!dataObj[json[row]['agent']]['agent']){
-          dataObj[json[row]['agent']]['agent'] = json[row]['agent'];
-        }
-        if (!dataObj[json[row]['agent']]['items']){
-          dataObj[json[row]['agent']]['items'] = {};
-        }
-        dataObj[json[row]['agent']]['items'][json[row]['guid']] = {
-          'amount':    (json[row]['agent'] == window.plugin.InventoryMapBot.NOKEYSPORTALS)?0:json[row]['amount'],
-          'name':      json[row]['name'],
-          'guid':      json[row]['guid'],
-          'latitude':  json[row]['latitude'],
-          'longitude': json[row]['longitude'],
-          'image':     json[row]['image'],
-          'address':   json[row]['address']
-        }
-      }else{
-        $("#plugin-InventoryMapBot-import-xlsx-div").html("Error");
-        return;
       }
-    }
-    //window.plugin.InventoryMapBot.debug(dataObj);
-    window.plugin.InventoryMapBot.dataObj = dataObj;
-    window.plugin.InventoryMapBot.saveStorage();
-    window.plugin.InventoryMapBot.optRefreshBkmksKeysData();
-    window.plugin.InventoryMapBot.optAlert('Successful. ');
-    $("#plugin-InventoryMapBot-import-xlsx-div").html("Over");
-  };
-  reader.readAsBinaryString(f);
-}catch(e){
-  $("#plugin-InventoryMapBot-import-xlsx-div").html("Error");
-}
+      window.plugin.InventoryMapBot.dataObj = dataObj;
+      window.plugin.InventoryMapBot.saveStorage();
+      window.plugin.InventoryMapBot.optRefreshBkmksKeysData();
+      $("#plugin-InventoryMapBot-import-xlsx-div").html("Over");
+    };
+    reader.readAsBinaryString(f);
+  }catch(e){
+    $("#plugin-InventoryMapBot-import-xlsx-div").html("Error");
+  }
 }
 
 window.plugin.InventoryMapBot.setupContent = function() {
