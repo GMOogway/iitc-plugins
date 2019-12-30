@@ -2,15 +2,17 @@
 // @id             iitc-plugin-InventoryMapBot@GMOogway
 // @name           IITC plugin: InventoryMapBot plugin
 // @category       Controls
-// @version        0.4.5.20190214
+// @version        0.4.6.20191230
 // @author         GMOogway
-// @description    [local-2019-02-14] InventoryMapBot plugin by GMOogway, works with sync.
+// @description    [local-2019-12-30] InventoryMapBot plugin by GMOogway, works with sync.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
 // @updateURL      https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
 // @namespace      https://github.com/GMOogway/iitc-plugins
 // @include        https://intel.ingress.com/*
 // @match          https://intel.ingress.com/*
 // @grant          none
+// @updateinfo     20191230:
+//                   fix css.              
 // ==/UserScript==
 
 
@@ -753,12 +755,12 @@ window.plugin.InventoryMapBot.getPortalKeysHtmlInfo = function(){
                 + '<div class="InventoryMapBot-keys-button" onclick="window.plugin.InventoryMapBot.addKey(-20,\'' + agent + '\',\'' + guid + '\');">-20</div>&nbsp;'
                 + '<div class="InventoryMapBot-keys-button" onclick="window.plugin.InventoryMapBot.addKey(-50,\'' + agent + '\',\'' + guid + '\');">-50</div>&nbsp;'
                 + '<div class="InventoryMapBot-keys-button" onclick="window.plugin.InventoryMapBot.addKey(-1,\'' + agent + '\',\'' + guid + '\');">'
-                + '<div class="InventoryMapBot-keys-button-minus"></div>'
+                + '<div class="InventoryMapBot-keys-button-minus" style="top:9px;"></div>'
                 + '</div>'
                 + '<div id="InventoryMapBot-keys-' + agent + '" class="InventoryMapBot-keys-count">' + (data[agent]['items'][guid]?(data[agent]['items'][guid]['amount'] || 0):0) +　'</div>'
                 + '<div class="InventoryMapBot-keys-button" onclick="window.plugin.InventoryMapBot.addKey(1,\'' + agent + '\',\'' + guid + '\');">'
-                + '<div class="InventoryMapBot-keys-button-plus-v"></div>'
-                + '<div class="InventoryMapBot-keys-button-plus-h"></div>'
+                + '<div class="InventoryMapBot-keys-button-plus-v" style="top:6px;"></div>'
+                + '<div class="InventoryMapBot-keys-button-plus-h" style="top:9px; left:3px;"></div>'
                 + '</div>'
                 + '<div class="InventoryMapBot-keys-button" onclick="window.plugin.InventoryMapBot.addKey(20,\'' + agent + '\',\'' + guid + '\');">+20</div>&nbsp;'
                 + '<div class="InventoryMapBot-keys-button" onclick="window.plugin.InventoryMapBot.addKey(50,\'' + agent + '\',\'' + guid + '\');">+50</div>&nbsp;';
