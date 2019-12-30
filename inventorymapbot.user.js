@@ -376,20 +376,21 @@ window.plugin.InventoryMapBot.setupCSS = function() {
       position: absolute;\
     }\
     .InventoryMapBot-keys-button-minus {\
-      width: 100%;\
+      width: 10px;\
       height: 4px;\
-      top: 9px;\
+      top: 6px;\
+      left: 8px;\
     }\
     .InventoryMapBot-keys-button-plus-h {\
-      width: 100%;\
+      width: 10px;\
       height: 4px;\
       top: 6px;\
     }\
     .InventoryMapBot-keys-button-plus-v {\
       width: 4px;\
-      height: 100%;\
+      height: 10px;\
       left: 3px;\
-      top: 9px;\
+      top: 3px;\
     }\
   ').appendTo("head");
 }
