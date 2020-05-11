@@ -2,7 +2,7 @@
 // @id             iitc-plugin-InventoryMapBot@GMOogway
 // @name           IITC plugin: InventoryMapBot plugin
 // @category       Controls
-// @version        0.4.7.20191230
+// @version        0.4.8.20200511
 // @author         GMOogway
 // @description    [local-2019-12-30] InventoryMapBot plugin by GMOogway, works with sync.
 // @downloadURL    https://github.com/GMOogway/iitc-plugins/raw/master/inventorymapbot.user.js
@@ -11,7 +11,7 @@
 // @include        https://intel.ingress.com/*
 // @match          https://intel.ingress.com/*
 // @grant          none
-// @updateinfo     20191230:
+// @updateinfo     20200511:
 //                   fix css.              
 // ==/UserScript==
 
@@ -23,7 +23,7 @@ if(typeof window.plugin !== 'function') window.plugin = function() {};
 //PLUGIN AUTHORS: writing a plugin outside of the IITC build environment? if so, delete these lines!!
 //(leaving them in place might break the 'About IITC' page or break update checks)
 plugin_info.buildName = 'local';
-plugin_info.dateTimeVersion = '20190214';
+plugin_info.dateTimeVersion = '20200511';
 plugin_info.pluginId = 'InventoryMapBot';
 //END PLUGIN AUTHORS NOTE
 
@@ -924,7 +924,7 @@ window.plugin.InventoryMapBot.pluginBookmarksInjection= function(){
         }
       }
       element += elemGenericFolder;
-
+  
       var filterOnchangeJs = '  \
                                <script type="text/javascript">\
                                  $("#bkmrk-filter").bind("input porpertychange",function(){\
@@ -962,6 +962,14 @@ window.plugin.InventoryMapBot.pluginBookmarksInjection= function(){
     return r;
   }
 }
+
+window.plugin.InventoryMapBot.loadScript = function(url) {
+	var script = document.createElement('script');
+	script.type = 'text/javascript';
+	script.src = url;
+	document.body.appendChild(script);
+}
+
 var setup = function() {
   window.plugin.InventoryMapBot.setupCSS();
   window.plugin.InventoryMapBot.setupContent();
@@ -970,7 +978,8 @@ var setup = function() {
   window.addHook('portalDetailsUpdated', window.plugin.InventoryMapBot.addToSidebar);
   window.addHook('iitcLoaded', window.plugin.InventoryMapBot.registerFieldForSyncing);
   window.plugin.InventoryMapBot.loadStorage();
-  load('https://cdn.staticfile.org/xlsx/0.14.1/xlsx.full.min.js');
+  //load('https://cdn.staticfile.org/xlsx/0.14.1/xlsx.full.min.js');
+  window.plugin.InventoryMapBot.loadScript('https://cdn.staticfile.org/xlsx/0.14.1/xlsx.full.min.js');
   const bookmarksTimeId = setInterval(() => {
     if (window.plugin.bookmarks) {
       window.plugin.InventoryMapBot.pluginBookmarksInjection();
@@ -983,6 +992,7 @@ var setup = function() {
       clearInterval(keysTimeId);
     }
   },1000)
+
 }
 
 // PLUGIN END //////////////////////////////////////////////////////////
