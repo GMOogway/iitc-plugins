@@ -243,7 +243,7 @@ window.plugin.CLADT.LatLon.prototype.bearingTo = function(point) {
 };
 window.plugin.CLADT.LatLon.prototype.distanceTo = function(point, radius) {
     if (!(point instanceof window.plugin.CLADT.LatLon)) throw new TypeError('point is not LatLon object');
-    radius = (radius === undefined) ? window.EARTH_RADIUS : Number(radius);
+    radius = (radius === undefined) ? window.plugin.CLADT.EARTH_RADIUS : Number(radius);
 
     var p1 = this.toVector();
     var p2 = point.toVector();
