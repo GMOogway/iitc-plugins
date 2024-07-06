@@ -413,8 +413,8 @@ window.plugin.CLADT.LatLon.intersection = function(path1start, path1brngEnd, pat
     return intersection.toLatLonS();
 };
 window.plugin.CLADT.LatLon.prototype.destinationPoint = function(distance, bearing, radius) {
-    radius = (radius === undefined) ? window.EARTH_RADIUS : Number(radius);
-
+    // radius = (radius === undefined) ? window.EARTH_RADIUS : Number(radius);
+    radius = 6367000.0;
     var n1 = this.toVector();
     var δ = Number(distance) / radius; // angular distance in radians
     var θ = Number(bearing).toRadians();
