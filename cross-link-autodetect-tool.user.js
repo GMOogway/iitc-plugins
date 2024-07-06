@@ -560,9 +560,9 @@ window.plugin.CLADT.check = async function (latlngs) {
   //var y = bounds['_northEast'].lat - p1.lat;
   var step;
   if (b >= 45 && b <= 135){
-    step =  (p1.distanceTo(new window.plugin.CLADT.LatLon(p1.lat, bounds['_northEast'].lng)))/(Math.cos((Math.abs(b - 90)).toRadians()))*3;
+    step =  (p1.distanceTo(new window.plugin.CLADT.LatLon(p1.lat, bounds['_northEast'].lng)))/(Math.cos((Math.abs(b - 90)).toRadians()))*2;
   }else{
-    step =  (p1.distanceTo(new window.plugin.CLADT.LatLon(bounds['_northEast'].lat, p1.lng)))/(Math.abs(Math.cos(b.toRadians())))*3;
+    step =  (p1.distanceTo(new window.plugin.CLADT.LatLon(bounds['_northEast'].lat, p1.lng)))/(Math.abs(Math.cos(b.toRadians())))*2;
   }
   var t =p1;
   window.plugin.CLADT.checkAllLinks(latlngs);
